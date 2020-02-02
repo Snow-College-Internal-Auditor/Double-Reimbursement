@@ -6,6 +6,7 @@ Sub Main
 	Call ExactMatch()
 	Call AppendField()
 	Call FilterForValidDate()
+	call ExportDatabaseXLSX()
 	Client.RefreshFileExplorer
 End Sub
 
@@ -140,3 +141,19 @@ Function FilterForValidDate
 	Set db = Nothing
 	Client.OpenDatabase (dbName)
 End Function 
+
+' File - Export Database: XLSX
+Function ExportDatabaseXLSX
+	Set db = Client.OpenDatabase( "Exact Match Narrow.IMD")
+	Set task = db.Index
+	task.AddKey "NO_OF_RECS", "D"
+	task.Index FALSE
+	task = db.ExportDatabase
+	task.IncludeAllFields
+	' Display the setup dialog box before performing the task.
+	task.DisplaySetupDialog 0
+	Set db = Nothing
+	Set task = Nothing
+End Function
+
+
