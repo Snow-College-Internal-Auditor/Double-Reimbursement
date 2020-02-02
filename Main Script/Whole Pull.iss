@@ -5,6 +5,7 @@ Sub Main
 	Call Clean_SPRIDEN_Database()
 	Call Get_SPRIDEN_ID()
 	Call FilterFinalTransaction()
+	Client.RefreshFileExplorer
 End Sub
 
 
@@ -83,7 +84,7 @@ Function Get_SPRIDEN_ID
 	task.AddSFieldToInc "SPRIDEN_ID"
 	task.AddMatchKey "FABINVH_VEND_PIDM", "SPRIDEN_PIDM", "A"
 	task.CreateVirtualDatabase = False
-	dbName = "Final Transaction Detai_Testl.IMD"
+	dbName = "Final Transaction Detail_Test.IMD"
 	task.PerformTask dbName, "", WI_JOIN_ALL_IN_PRIM
 	Set task = Nothing
 	Set db = Nothing
