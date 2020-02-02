@@ -1,43 +1,16 @@
 Sub Main
-	Call JoinDatabase()
-	Call DirectExtraction()
+	Call CreateCard()
+	Call CleanCardDatabase()
+	Call FilterCardDatabase()
+	Call ExactMatch()
+	Call AppendField()
+	Call FilterForValidDate()
 	Client.RefreshFileExplorer
 End Sub
 
-
 ' File: Join Databases
-Function JoinDatabase
-	Set db = Client.OpenDatabase("PIDM Number_Test.IMD")
-	Set task = db.JoinDatabase
-	task.FileToJoin "SPRIDEN_CLEANED.IMD"
-	task.IncludeAllPFields
-	task.AddSFieldToInc "SPRIDEN_ID"
-	task.AddMatchKey "FABINVH_VEND_PIDM", "SPRIDEN_PIDM", "A"
-	task.CreateVirtualDatabase = False
-	dbName = "Final Transaction Detail_Test1.IMD"
-	task.PerformTask dbName, "", WI_JOIN_ALL_IN_PRIM
-	db.Close
-	Set task = Nothing
-	Set db = Nothing
-End Function
-
-' Data: Direct Extraction
-Function DirectExtraction
-	Set db = Client.OpenDatabase("Final Transaction Detail_Test1.IMD")
-	Set task = db.Extraction
-	task.IncludeAllFields
-	dbName = "Final Transaction Detail With SPRIDEN_ID_Test1.IMD"
-	task.AddExtraction dbName, "", "@NoMatch(SPRIDEN_ID, """") .AND. FGBTRND_FIELD_CODE == ""03"""
-	task.CreateVirtualDatabase = False
-	task.PerformTask 1, db.Count
-	db.Close
-	Set task = Nothing
-	Set db = Nothing
-End Function
-
-' File: Join Databases
-Function JoinDatabase
-	Set db = Client.OpenDatabase("Final Transaction Detail With SPRIDEN_ID_Test1.IMD")
+Function CreateCard
+	Set db = Client.OpenDatabase("Final Transaction Detail With SPRIDEN_ID_Test.IMD")
 	Set task = db.JoinDatabase
 	task.FileToJoin "FIMSMGR.FTVCARD.IMD"
 	task.IncludeAllPFields
@@ -51,5 +24,88 @@ Function JoinDatabase
 	Client.OpenDatabase (dbName)
 End Function
 
+Function CleanCardDatabase
+	Set db = Client.OpenDatabase("Card Number Added To Final Transaction_Test.IMD")
+	Set task = db.Extraction
+	task.IncludeAllFields
+	dbName = "Card Number Added To Final Transaction_Clean_Test.IMD"
+	task.AddExtraction dbName, "", "@NoMatch(SPRIDEN_ID,  """" )  .AND. @NoMatch(CARD_LAST_FOUR,  """" )    "
+	task.CreateVirtualDatabase = False
+	task.PerformTask 1, db.Count
+	Set task = Nothing
+	Set db = Nothing
+	Client.OpenDatabase (dbName)
+End Function
 
+Function FilterCardDatabase
+	Set db = Client.OpenDatabase("Card Number Added To Final Transaction_Clean_Test.IMD")
+	Set task = db.Extraction
+	task.AddFieldToInc "FGBTRND_DOC_SEQ_CODE"
+	task.AddFieldToInc "FGBTRND_DOC_CODE"
+	task.AddFieldToInc "FGBTRND_SEQ_NUM"
+	task.AddFieldToInc "FGBTRND_ACTIVITY_DATE_DATE"
+	task.AddFieldToInc "FGBTRND_USER_ID"
+	task.AddFieldToInc "FGBTRND_ACCI_CODE"
+	task.AddFieldToInc "FGBTRND_FUND_CODE"
+	task.AddFieldToInc "FGBTRND_ORGN_CODE"
+	task.AddFieldToInc "FGBTRND_ACCT_CODE"
+	task.AddFieldToInc "FGBTRND_TRANS_AMT"
+	task.AddFieldToInc "FABINCK_CHECK_NUM"
+	task.AddFieldToInc "FABINCK_ACTIVITY_DATE_DATE"
+	task.AddFieldToInc "FABINCK_NET_AMT"
+	task.AddFieldToInc "FABINVH_VEND_PIDM"
+	task.AddFieldToInc "SPRIDEN_ID"
+	task.AddFieldToInc "CARD_LAST_FOUR"
+	dbName = "Card Number Filtered_Test.IMD"
+	task.AddExtraction dbName, "", "FGBTRND_DR_CR_IND = ""+""    "
+	task.CreateVirtualDatabase = False
+	task.PerformTask 1, db.Count
+	Set task = Nothing
+	Set db = Nothing
+	Client.OpenDatabase (dbName)
+End Function	
 
+Function ExactMatch
+	Set db = Client.OpenDatabase("Card Number Filtered_Test.IMD")
+	Set task = db.JoinDatabase
+	task.FileToJoin "2018July2019June Clean.IMD"
+	task.IncludeAllPFields
+	task.IncludeAllSFields
+	task.AddMatchKey "FGBTRND_TRANS_AMT", "TRANSACTION_AMOUNT", "A"
+	task.AddMatchKey "CARD_LAST_FOUR", "ACCOUNT_NUMBER", "A"
+	task.CreateVirtualDatabase = False
+	dbName = "Exact Match.IMD"
+		task.PerformTask dbName, "", WI_JOIN_ALL_IN_PRIM
+	Set task = Nothing
+	Set db = Nothing
+	Client.OpenDatabase (dbName)
+End Function
+
+Function AppendField
+	Set db = Client.OpenDatabase("Exact Match.IMD")
+	Set task = db.TableManagement
+	Set field = db.TableDef.NewField
+	field.Name = "TIME_BETWEEN"
+	field.Description = "Time between dates"
+	field.Type = WI_VIRT_NUM
+	field.Equation = "@Age(FGBTRND_ACTIVITY_DATE_DATE, TRANSACTION_DATE)"
+	field.Decimals = 0
+	task.AppendField field
+	task.PerformTask
+	Set task = Nothing
+	Set db = Nothing
+	Set field = Nothing
+End Function
+
+Function FilterForValidDate
+	Set db = Client.OpenDatabase("Exact Match.IMD")
+	Set task = db.Extraction
+	task.IncludeAllFields
+	dbName = "Exact Match Narrow.IMD"
+	task.AddExtraction dbName, "", "TRANSACTION_AMOUNT > 0  .AND.  TRANSACTION_DATE < FGBTRND_ACTIVITY_DATE_DATE  .AND. TIME_BETWEEN < 100"
+	task.CreateVirtualDatabase = False
+	task.PerformTask 1, db.Count
+	Set task = Nothing
+	Set db = Nothing
+	Client.OpenDatabase (dbName)
+End Function 
