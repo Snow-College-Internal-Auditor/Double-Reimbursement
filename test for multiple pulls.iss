@@ -1,26 +1,27 @@
 Dim importedFile As String
 Dim Num As Integer
+Dim CleanYearDatabase(1) As String
+
 
 Sub Main
 	
 	Call NumberOfPulls() 
 	i = 0
 	Do While i < Num
-		Call ExcelImport()
+		Call ExcelImport(i)
 		Call CleanYear()
-		'Doesnt like me putting variable in the array. I think its because it is casted as a char. Need to change it to an int. 
-		Dim CleanYearDatabases(i) As String
-		Call CleanYearDatabaseArray() 
 		i = i +1
 		Client.RefreshFileExplorer
 	Loop
-	If Num > 1
+	If Num > 1 Then
 		i = 0 
 		Do While i < Num 
-			MsgBox(CleanYearDatabases(i))
+			MsgBox(CleanYearDatabase(i))
 			i = i + 1
-			'Code For inner joining multiple p_card clean databases
+			'Will make it so it will pull from the array CleanYearDatabase what databases need to be inner joined together
 		Loop
+	End If
+
 
 End Sub
 
@@ -30,7 +31,7 @@ Function NumberOfPulls
 End Function 
 
 ' File - Import Assistant: Excel
-Function ExcelImport(importedFile)
+Function ExcelImport(i)
 	Set task = Client.GetImportTask("ImportExcel")
 	Set obj = client.commondialogs
 		importedFile =  obj.fileopen("","","All Files (*.*)|*.*||;")
@@ -41,6 +42,8 @@ Function ExcelImport(importedFile)
 	task.EmptyNumericFieldAsZero = "TRUE"
 	task.PerformTask
 	importedFile = task.OutputFilePath("Sheet1")
+	'adding the name of the new database into the array
+	CleanYearDatabase(i) = importedFile 
 	Set task = Nothing
 End Function
 
@@ -66,12 +69,4 @@ Function CleanYear
 	Set db = Nothing
 End Function
 
-Function CleanYearDatabaseArray() 
-	i = 0
-	'Dim CleanYearDatabases(Num)
-	Do While i < Num  
-		CleanYearDatabase(i) = importedFile 
-		i = i + 1
-	Loop
-End Function 
 
