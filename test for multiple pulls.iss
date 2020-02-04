@@ -1,6 +1,6 @@
 Dim importedFile As String
 Dim Num As Integer
-Dim CleanYearDatabase(1) As String
+Dim CleanYearDatabase(50) As String
 
 
 Sub Main
@@ -13,6 +13,14 @@ Sub Main
 		i = i +1
 		Client.RefreshFileExplorer
 	Loop
+	j = 0
+	Do While j < Num
+		'Dont know if this is completly working yet. 
+		Call JoinDatabase(j)
+		j = j + 1
+		Client.RefreshFileExplorer
+	Loop
+	'need to combine this with the while loop above it. 
 	If Num > 1 Then
 		i = 0 
 		Do While i < Num 
@@ -67,6 +75,24 @@ Function CleanYear
 	Client.CloseDatabase importedFile
 	Set task = Nothing
 	Set db = Nothing
+End Function
+
+' File: Join Databases
+Function JoinDatabase(j)
+	Set db = Client.OpenDatabase(CleanYearDatabase(j))
+	Set task = db.JoinDatabase
+	task.FileToJoin CleanYearDatabase(j + 1)
+	task.IncludeAllPFields
+	task.IncludeAllSFields
+	task.AddMatchKey "NAME", "NAME", "A"
+	task.CreateVirtualDatabase = False
+	dbName = "Join Databases.IMD"
+	task.PerformTask dbName, "", WI_JOIN_ALL_REC
+	Set task = Nothing
+	Set db = Nothing
+	i = Num + 1
+	CleanYearDatabase(i) = dbName
+	Client.OpenDatabase (dbName)
 End Function
 
 
