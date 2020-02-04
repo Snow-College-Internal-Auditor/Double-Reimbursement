@@ -1,12 +1,17 @@
+Dim importedFile As String
+Dim Num As Integer
+
 Sub Main
 	Call CreateCard()
 	Call CleanCardDatabase()
 	Call FilterCardDatabase()
+	Call NumberOfPulls() 
+	Call ExcelImport()
 	Call CleanYear()
 	Call ExactMatch()
 	Call AppendField()
 	Call FilterForValidDate()
-	call ExportDatabaseXLSX()
+	Call ExportDatabaseXLSX()
 	Client.RefreshFileExplorer
 End Sub
 
@@ -70,9 +75,29 @@ Function FilterCardDatabase
 	Client.OpenDatabase (dbName)
 End Function	
 
+Function NumberOfPulls
+	subFileName = InputBox("How many sheets you want to pull: ", "Name Input", "1")
+	Num  = Val(subFileName)
+End Function 
+
+' File - Import Assistant: Excel
+Function ExcelImport
+	Set task = Client.GetImportTask("ImportExcel")
+	Set obj = client.commondialogs
+		importedFile =  obj.fileopen("","","All Files (*.*)|*.*||;")
+	task.FileToImport = importedFile
+	task.SheetToImport = "Sheet1"
+	task.OutputFilePrefix = iSplit(importedFile ,"","\",1,1)
+	task.FirstRowIsFieldName = "TRUE"
+	task.EmptyNumericFieldAsZero = "TRUE"
+	task.PerformTask
+	importedFile = task.OutputFilePath("Sheet1")
+	Set task = Nothing
+End Function
+
 ' Data: Direct Extraction
 Function CleanYear
-	Set db = Client.OpenDatabase("Copy of Year2018July2019JuneTransactionStatement-Sheet1.IMD")
+	Set db = Client.OpenDatabase(importedFile)
 	Set task = db.Extraction
 	task.AddFieldToInc "NAME"
 	task.AddFieldToInc "ACCOUNT_NUMBER"
@@ -87,10 +112,9 @@ Function CleanYear
 	task.AddExtraction dbName, "", ""
 	task.CreateVirtualDatabase = False
 	task.PerformTask 1, db.Count
-	Client.CloseDatabase "Copy of Year2018July2019JuneTransactionStatement-Sheet1.IMD"
+	Client.CloseDatabase importedFile
 	Set task = Nothing
 	Set db = Nothing
-	Client.OpenDatabase (dbName)
 End Function
 
 Function ExactMatch
@@ -108,7 +132,6 @@ Function ExactMatch
 	Client.CloseDatabase  "2018July2019June Clean.IMD"
 	Set task = Nothing
 	Set db = Nothing
-	Client.OpenDatabase (dbName)
 End Function
 
 Function AppendField
@@ -137,23 +160,23 @@ Function FilterForValidDate
 	task.CreateVirtualDatabase = False
 	task.PerformTask 1, db.Count
 	Client.CloseDatabase "Exact Match.IMD"
+	Client.CloseDatabase "Exact Match Narrow.IMD"
 	Set task = Nothing
 	Set db = Nothing
-	Client.OpenDatabase (dbName)
 End Function 
 
 ' File - Export Database: XLSX
 Function ExportDatabaseXLSX
-	Set db = Client.OpenDatabase( "Exact Match Narrow.IMD")
-	Set task = db.Index
-	task.AddKey "NO_OF_RECS", "D"
-	task.Index FALSE
-	task = db.ExportDatabase
+	Set db = Client.OpenDatabase("Exact Match Narrow.IMD")
+	Set task = db.ExportDatabase
+	' Configure the task.
 	task.IncludeAllFields
 	' Display the setup dialog box before performing the task.
 	task.DisplaySetupDialog 0
+	' Clear the memory.
 	Set db = Nothing
 	Set task = Nothing
 End Function
+
 
 
