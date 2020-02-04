@@ -1,0 +1,29 @@
+Sub Main
+	Call JoinDatabase()	'2019AugTransactionStatement.xlsx-Sheet1 Clean.IMD
+	Client.CloseDatabase "Join Databases.IMD"
+	Call RenameDatabase()	'Join Databases.IMD
+End Sub
+
+
+' File: Join Databases
+Function JoinDatabase
+	Set db = Client.OpenDatabase("2019AugTransactionStatement.xlsx-Sheet1 Clean.IMD")
+	Set task = db.JoinDatabase
+	task.FileToJoin "2019JulyTransactionStatement.xlsx-Sheet1 Clean.IMD"
+	task.IncludeAllPFields
+	task.IncludeAllSFields
+	task.AddMatchKey "NAME", "NAME", "A"
+	task.CreateVirtualDatabase = False
+	dbName = "Join Databases.IMD"
+	task.PerformTask dbName, "", WI_JOIN_ALL_REC
+	Set task = Nothing
+	Set db = Nothing
+	Client.OpenDatabase (dbName)
+End Function
+
+' Rename Database
+Function RenameDatabase
+	Set ProjectManagement = client.ProjectManagement
+	ProjectManagement.RenameDatabase "Join Databases.IMD", "Test Database"
+	Set ProjectManagement = Nothing
+End Function
