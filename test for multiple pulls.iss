@@ -1,7 +1,8 @@
 Dim importedFile As String
 Dim Num As Integer
 Dim CleanYearDatabase(50) As String
-
+Dim PrimeDatabase As String
+Dim SecondDatabase As String
 
 Sub Main
 	
@@ -14,9 +15,10 @@ Sub Main
 		Client.RefreshFileExplorer
 	Loop
 	j = 0
-	Do While j < Num
+	Do While j + 1 < Num
 		'Dont know if this is completly working yet. 
-		Call JoinDatabase(j)
+		Call DatabaseToJoin()
+		Call JoinDatabase(PrimeDatabase, SecondDatabase)
 		j = j + 1
 		Client.RefreshFileExplorer
 	Loop
@@ -37,6 +39,13 @@ Function NumberOfPulls
 	subFileName = InputBox("How many sheets you want to pull: ", "Name Input", "1")
 	Num  = Val(subFileName)
 End Function 
+
+Function DatabaseToJoin
+	PrimeDatabase = InputBox("Enter primary database: ", "Name Input", "Database")
+	PrimeDatabase = PrimeDatabase + ".IMD"
+	SecondDatabase = InputBox("Enter secondary database: ", "Name Input", "Database")
+	SecondDatabase = SecondDatabase + ".IMD"
+End Function
 
 ' File - Import Assistant: Excel
 Function ExcelImport(i)
@@ -78,10 +87,10 @@ Function CleanYear
 End Function
 
 ' File: Join Databases
-Function JoinDatabase(j)
-	Set db = Client.OpenDatabase(CleanYearDatabase(j))
+Function JoinDatabase(PrimeDatabase, SecondDatabase)
+	Set db = Client.OpenDatabase(PrimeDatabase)
 	Set task = db.JoinDatabase
-	task.FileToJoin CleanYearDatabase(j + 1)
+	task.FileToJoin SecondDatabase
 	task.IncludeAllPFields
 	task.IncludeAllSFields
 	task.AddMatchKey "NAME", "NAME", "A"
@@ -90,8 +99,6 @@ Function JoinDatabase(j)
 	task.PerformTask dbName, "", WI_JOIN_ALL_REC
 	Set task = Nothing
 	Set db = Nothing
-	i = Num + 1
-	CleanYearDatabase(i) = dbName
 	Client.OpenDatabase (dbName)
 End Function
 
