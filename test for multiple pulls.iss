@@ -3,6 +3,7 @@ Dim Num As Integer
 Dim CleanYearDatabase(50) As String
 Dim PrimeDatabase As String
 Dim SecondDatabase As String
+Dim NewDatabaseName As String
 
 Sub Main
 	
@@ -45,6 +46,7 @@ Function DatabaseToJoin
 	PrimeDatabase = PrimeDatabase + ".IMD"
 	SecondDatabase = InputBox("Enter secondary database: ", "Name Input", "Database")
 	SecondDatabase = SecondDatabase + ".IMD"
+	NewDatabaseName = InputBox("Enter the neam of the new database: ", "Name Input", "Database")
 End Function
 
 ' File - Import Assistant: Excel
@@ -95,7 +97,7 @@ Function JoinDatabase(PrimeDatabase, SecondDatabase)
 	task.IncludeAllSFields
 	task.AddMatchKey "NAME", "NAME", "A"
 	task.CreateVirtualDatabase = False
-	dbName = "Join Databases.IMD"
+	dbName = NewDatabaseName + ".IMD"
 	task.PerformTask dbName, "", WI_JOIN_ALL_REC
 	Set task = Nothing
 	Set db = Nothing
