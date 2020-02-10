@@ -15,24 +15,16 @@ Sub Main
 		i = i +1
 		Client.RefreshFileExplorer
 	Loop
-	j = 0
-	Do While j + 1 < Num
-		'Dont know if this is completly working yet. 
-		Call DatabaseToJoin()
-		Call JoinDatabase(PrimeDatabase, SecondDatabase)
-		j = j + 1
-		Client.RefreshFileExplorer
-	Loop
-	'need to combine this with the while loop above it. 
-	If Num > 1 Then
-		i = 0 
-		Do While i < Num 
-			MsgBox(CleanYearDatabase(i))
-			i = i + 1
-			'Will make it so it will pull from the array CleanYearDatabase what databases need to be inner joined together
+	'If there is only one database we will not need to do a join. If there is then it will run through the join script 
+	If Num > 1 Then 
+		j = 0
+		Do While j + 1 < Num
+			Call DatabaseToJoin()
+			Call JoinDatabase(PrimeDatabase, SecondDatabase)
+			j = j + 1
+			Client.RefreshFileExplorer
 		Loop
 	End If
-
 
 End Sub
 
