@@ -1,3 +1,9 @@
+Begin Dialog NewDialog 50,50,150,150,"NewDialog", .NewDialog
+  PushButton 44,49,50,22, "Exact Match", .PushButton1
+End Dialog
+
+Dim dlg As NewDialog
+
 Sub Main
 	Call GetVendorNames()	
 	Call GetCheckInfo()
@@ -5,6 +11,7 @@ Sub Main
 	Call Clean_SPRIDEN_Database()
 	Call Get_SPRIDEN_ID()
 	Call FilterFinalTransaction()
+	Call DialogCall()
 	Client.RefreshFileExplorer
 End Sub
 
@@ -109,4 +116,11 @@ Function FilterFinalTransaction
 	Client.CloseDatabase "Final Transaction Detail.IMD"
 	Set task = Nothing
 	Set db = Nothing
+End Function
+
+Function DialogCall()
+	button = Dialog(dlg)
+	If button = 1 Then
+		Client.RunIDEAScriptEx "C:\Users\mckinnin.lloyd\Documents\Active Projects\Double-Reimbursement\Main Script\subscripts\Exact Match.iss", "", "", "", ""
+	End If
 End Function
