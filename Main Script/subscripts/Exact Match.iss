@@ -4,6 +4,8 @@ Dim CleanYearDatabase(50) As String
 Dim PrimeDatabase As String
 Dim SecondDatabase As String
 Dim NewDatabaseName As String
+Dim singleDatabase As String 
+Dim tempFileName As String 
 
 
 Sub Main
@@ -27,9 +29,13 @@ Sub Main
 			j = j + 1
 			Client.RefreshFileExplorer
 		Loop
+		Call ExactMatch2()
+	ElseIf Num = 1 Then
+		Call ExactMatch1()
 	End If
+	
 	'Call CleanYear()
-	Call ExactMatch()
+	'Call ExactMatch()
 	Call AppendField()
 	Call FilterForValidDate()
 	Call ExportDatabaseXLSX()
@@ -117,6 +123,8 @@ Function ExcelImport(i)
 	task.FileToImport = importedFile
 	task.SheetToImport = "Sheet1"
 	task.OutputFilePrefix = iSplit(importedFile ,"","\",1,1)
+	importedFile =  iSplit(importedFile ,"","\",1,1)
+	tempFileName = importedFile
 	task.FirstRowIsFieldName = "TRUE"
 	task.EmptyNumericFieldAsZero = "TRUE"
 	task.PerformTask
@@ -139,8 +147,9 @@ Function CleanYear
 	task.AddFieldToInc "MERCHANT_CATEGORY_CODE"
 	task.AddFieldToInc "MERCHANT_CATEGORY_CODE_DESCRIPTION"
 	task.AddFieldToInc "MERCHANT_NAME"
-	dbName = importedFile +  " Clean.IMD"
-	task.AddExtraction dbName, "", ""
+	singleDatabase = tempFileName + " Clean.IMD"
+	task.AddExtraction singleDatabase, "", ""
+	MsgBox(singleDatabase)
 	task.CreateVirtualDatabase = False
 	task.PerformTask 1, db.Count
 	Client.CloseDatabase importedFile
@@ -164,7 +173,24 @@ Function JoinDatabase(PrimeDatabase, SecondDatabase)
 	Client.OpenDatabase (dbName)
 End Function
 
-Function ExactMatch
+Function ExactMatch1
+	Set db = Client.OpenDatabase("Card Number Filtered.IMD")
+	Set task = db.JoinDatabase
+	task.FileToJoin singleDatabase
+	task.IncludeAllPFields
+	task.IncludeAllSFields
+	task.AddMatchKey "FGBTRND_TRANS_AMT", "TRANSACTION_AMOUNT", "A"
+	task.AddMatchKey "CARD_LAST_FOUR", "ACCOUNT_NUMBER", "A"
+	task.CreateVirtualDatabase = False
+	dbName = "Exact Match.IMD"
+		task.PerformTask dbName, "", WI_JOIN_ALL_IN_PRIM
+	Client.CloseDatabase "Card Number Filtered.IMD"
+	Client.CloseDatabase  NewDatabaseName  + ".IMD"
+	Set task = Nothing
+	Set db = Nothing
+End Function
+
+Function ExactMatch2
 	Set db = Client.OpenDatabase("Card Number Filtered.IMD")
 	Set task = db.JoinDatabase
 	task.FileToJoin NewDatabaseName  + ".IMD"
@@ -224,6 +250,7 @@ Function ExportDatabaseXLSX
 	Set db = Nothing
 	Set task = Nothing
 End Function
+
 
 
 
